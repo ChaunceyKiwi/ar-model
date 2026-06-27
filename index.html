@@ -2,8 +2,8 @@
 <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.3/dist/aframe-extras.min.js"></script>
 
 <a-scene
-  xr-mode-ui="enabled: true"
-  webxr="optionalFeatures: hit-test,hand-tracking,depth-sensing;"
+  xr-mode-ui="enabled: true; XRMode: ar"
+  webxr="requiredFeatures: local-floor; optionalFeatures: hit-test,hand-tracking,depth-sensing;"
   renderer="colorManagement: true; physicallyCorrectLights: true;">
   <a-assets>
     <a-asset-item id="model" src="my-model.glb"></a-asset-item>
