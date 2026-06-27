@@ -1,32 +1,38 @@
 <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 <script>
-  AFRAME.registerComponent('controller-grab', {
-    schema: { target: { type: 'selector' }, distance: { type: 'number', default: 0.5 } },
+  AFRAME.registerComponent('joystick-control', {
+    schema: {
+      target: { type: 'selector' },
+      mode: { default: 'move' },        // 'move' or 'rotate'
+      moveSpeed: { default: 1.0 },      // meters / second
+      rotateSpeed: { default: 90 }      // degrees / second
+    },
     init: function () {
-      this.grabbing = false;
-      this.onGrab = this.onGrab.bind(this);
-      this.onRelease = this.onRelease.bind(this);
-      this.el.addEventListener('triggerdown', this.onGrab);
-      this.el.addEventListener('gripdown', this.onGrab);
-      this.el.addEventListener('triggerup', this.onRelease);
-      this.el.addEventListener('gripup', this.onRelease);
+      this.stick = { x: 0, y: 0 };
+      this.onThumbstick = this.onThumbstick.bind(this);
+      this.el.addEventListener('thumbstickmoved', this.onThumbstick);
     },
-    onGrab: function () {
-      if (this.grabbing) return;
+    onThumbstick: function (evt) {
+      this.stick.x = evt.detail.x;
+      this.stick.y = evt.detail.y;
+    },
+    tick: function (time, delta) {
       var target = this.data.target;
-      var controllerPos = new THREE.Vector3();
-      var targetPos = new THREE.Vector3();
-      this.el.object3D.getWorldPosition(controllerPos);
-      target.object3D.getWorldPosition(targetPos);
-      if (controllerPos.distanceTo(targetPos) <= this.data.distance) {
-        this.el.object3D.attach(target.object3D);
-        this.grabbing = true;
+      if (!target) return;
+      var dt = (delta || 0) / 1000;
+      var x = Math.abs(this.stick.x) > 0.1 ? this.stick.x : 0;
+      var y = Math.abs(this.stick.y) > 0.1 ? this.stick.y : 0;
+      if (x === 0 && y === 0) return;
+      var obj = target.object3D;
+      if (this.data.mode === 'move') {
+        // right stick: x = strafe, y(up) = push away
+        obj.position.x += x * this.data.moveSpeed * dt;
+        obj.position.z += y * this.data.moveSpeed * dt;
+      } else {
+        // left stick: x = rotate (yaw), y(up) = raise
+        obj.rotation.y -= x * THREE.MathUtils.degToRad(this.data.rotateSpeed) * dt;
+        obj.position.y -= y * this.data.moveSpeed * dt;
       }
-    },
-    onRelease: function () {
-      if (!this.grabbing) return;
-      this.el.sceneEl.object3D.attach(this.data.target.object3D);
-      this.grabbing = false;
     }
   });
 </script>
@@ -53,8 +59,8 @@
   <a-entity hand-tracking-controls="hand: left" hand-tracking-grab-controls="hand: left; hoverEnabled: true"></a-entity>
   <a-entity hand-tracking-controls="hand: right" hand-tracking-grab-controls="hand: right; hoverEnabled: true"></a-entity>
 
-  <a-entity oculus-touch-controls="hand: left" controller-grab="target: #my-model"></a-entity>
-  <a-entity oculus-touch-controls="hand: right" controller-grab="target: #my-model"></a-entity>
+  <a-entity oculus-touch-controls="hand: left" joystick-control="target: #my-model; mode: rotate"></a-entity>
+  <a-entity oculus-touch-controls="hand: right" joystick-control="target: #my-model; mode: move"></a-entity>
 
   <a-camera></a-camera>
 </a-scene>
