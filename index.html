@@ -1,4 +1,35 @@
 <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+<script>
+  AFRAME.registerComponent('controller-grab', {
+    schema: { target: { type: 'selector' }, distance: { type: 'number', default: 0.5 } },
+    init: function () {
+      this.grabbing = false;
+      this.onGrab = this.onGrab.bind(this);
+      this.onRelease = this.onRelease.bind(this);
+      this.el.addEventListener('triggerdown', this.onGrab);
+      this.el.addEventListener('gripdown', this.onGrab);
+      this.el.addEventListener('triggerup', this.onRelease);
+      this.el.addEventListener('gripup', this.onRelease);
+    },
+    onGrab: function () {
+      if (this.grabbing) return;
+      var target = this.data.target;
+      var controllerPos = new THREE.Vector3();
+      var targetPos = new THREE.Vector3();
+      this.el.object3D.getWorldPosition(controllerPos);
+      target.object3D.getWorldPosition(targetPos);
+      if (controllerPos.distanceTo(targetPos) <= this.data.distance) {
+        this.el.object3D.attach(target.object3D);
+        this.grabbing = true;
+      }
+    },
+    onRelease: function () {
+      if (!this.grabbing) return;
+      this.el.sceneEl.object3D.attach(this.data.target.object3D);
+      this.grabbing = false;
+    }
+  });
+</script>
 
 <a-scene
   xr-mode-ui="enabled: true; XRMode: ar"
@@ -21,6 +52,9 @@
 
   <a-entity hand-tracking-controls="hand: left" hand-tracking-grab-controls="hand: left; hoverEnabled: true"></a-entity>
   <a-entity hand-tracking-controls="hand: right" hand-tracking-grab-controls="hand: right; hoverEnabled: true"></a-entity>
+
+  <a-entity oculus-touch-controls="hand: left" controller-grab="target: #my-model"></a-entity>
+  <a-entity oculus-touch-controls="hand: right" controller-grab="target: #my-model"></a-entity>
 
   <a-camera></a-camera>
 </a-scene>
