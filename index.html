@@ -1,10 +1,22 @@
-<script type="module"
-  src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+<script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.3/dist/aframe-extras.min.js"></script>
 
-<model-viewer
-  src="my-model.glb"
-  ar
-  ar-modes="webxr"
-  ar-scale="fixed"
-  camera-controls>
-</model-viewer>
+<a-scene xr-mode-ui="enabled: true" webxr="optionalFeatures: hit-test,hand-tracking,depth-sensing;">
+  <a-assets>
+    <a-asset-item id="model" src="my-model.glb"></a-asset-item>
+  </a-assets>
+
+  <a-entity
+    id="my-model"
+    gltf-model="#model"
+    position="0 0 -1"
+    scale="1 1 1"
+    grabbable
+    stretchable>
+  </a-entity>
+
+  <a-entity hand-tracking-controls="hand: left"></a-entity>
+  <a-entity hand-tracking-controls="hand: right"></a-entity>
+
+  <a-camera></a-camera>
+</a-scene>
